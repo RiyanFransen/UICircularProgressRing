@@ -85,6 +85,24 @@ import UIKit
             self.ringLayer.fullCircle = self.fullCircle
         }
     }
+
+	@IBInspectable open var thumbEnabled: Bool = true {
+		didSet {
+			self.ringLayer.shouldShowEndThumb = self.thumbEnabled
+		}
+	}
+
+	@IBInspectable open var thumbImage: UIImage? = nil {
+		didSet {
+			self.ringLayer.thumbImage = self.thumbImage
+		}
+	}
+
+	@IBInspectable open var thumbRadius: CGFloat = 20 {
+		didSet {
+			self.ringLayer.thumbRadius = thumbRadius
+		}
+	}
     
     // MARK: Value Properties
     

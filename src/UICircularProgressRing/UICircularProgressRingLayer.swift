@@ -102,6 +102,10 @@ class UICircularProgressRingLayer: CAShapeLayer {
     @NSManaged var innerRingColor: UIColor
     @NSManaged var innerCapStyle: CGLineCap
     @NSManaged var innerRingSpacing: CGFloat
+
+	@NSManaged var shouldShowEndThumb: Bool
+	@NSManaged var thumbRadius: CGFloat
+	@NSManaged var thumbImage: UIImage?
     
     @NSManaged var shouldShowValueText: Bool
     @NSManaged var fontColor: UIColor
@@ -324,7 +328,31 @@ class UICircularProgressRingLayer: CAShapeLayer {
             
             ctx.restoreGState()
         }
-    }
+
+		drawThumb(at: innerPath.currentPoint, in: ctx)
+	}
+
+	func drawThumb(at point: CGPoint, in context:CGContext) {
+		print("Drawing thumb at point: ", point)
+		let rect = CGRect(x: point.x - thumbRadius , y: point.y - thumbRadius, width: thumbRadius * 2, height: thumbRadius * 2)
+		context.saveGState()
+		context.setFillColor(UIColor.white.cgColor)
+		context.setShadow(offset: CGSize(width: 0, height: 3), blur: 0.8)
+		context.addEllipse(in: rect)
+		context.fillPath()
+		context.restoreGState()
+
+
+		if let image = thumbImage {
+			context.saveGState()
+			let radius = thumbRadius - 6
+			let rect = CGRect(x: point.x - radius , y: point.y - radius, width: radius * 2, height: radius * 2)
+			image.draw(in: rect)
+			//context.draw(image, in: rect)
+			context.restoreGState()
+		}
+	}
+
     
     /**
      Draws a gradient with a start and end position inside the provided context
