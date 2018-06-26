@@ -333,7 +333,6 @@ class UICircularProgressRingLayer: CAShapeLayer {
 	}
 
 	func drawThumb(at point: CGPoint, in context:CGContext) {
-		print("Drawing thumb at point: ", point)
 		let rect = CGRect(x: point.x - thumbRadius , y: point.y - thumbRadius, width: thumbRadius * 2, height: thumbRadius * 2)
 		context.saveGState()
 		context.setFillColor(UIColor.white.cgColor)
