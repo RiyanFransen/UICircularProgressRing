@@ -90,6 +90,11 @@ class UICircularProgressRingLayer: CAShapeLayer {
     @NSManaged var gradientColorLocations: [CGFloat]?
     @NSManaged var gradientStartPosition: UICircularProgressRingGradientPosition
     @NSManaged var gradientEndPosition: UICircularProgressRingGradientPosition
+
+	@NSManaged var gradientColorsOuterCircle: [UIColor]
+	@NSManaged var gradientColorLocationsOuterCircle: [CGFloat]?
+	@NSManaged var gradientStartPositionOuterCircle: UICircularProgressRingGradientPosition
+	@NSManaged var gradientEndPositionOuterCircle: UICircularProgressRingGradientPosition
     
     @NSManaged var startAngle: CGFloat
     @NSManaged var endAngle: CGFloat
@@ -152,7 +157,7 @@ class UICircularProgressRingLayer: CAShapeLayer {
         super.draw(in: ctx)
         UIGraphicsPushContext(ctx)
         // Draw the rings
-        drawOuterRing()
+		drawOuterRing(in: ctx)
         drawInnerRing(in: ctx)
         // Draw the label
         drawValueLabel()
@@ -205,7 +210,7 @@ class UICircularProgressRingLayer: CAShapeLayer {
      Draws the outer ring for the view.
      Sets path properties according to how the user has decided to customize the view.
      */
-    private func drawOuterRing() {
+	private func drawOuterRing(in ctx: CGContext) {
         guard outerRingWidth > 0 else { return }
 
         let width: CGFloat = bounds.width
@@ -239,9 +244,35 @@ class UICircularProgressRingLayer: CAShapeLayer {
         default: break
             
         }
-        
-        outerRingColor.setStroke()
-        outerPath.stroke()
+
+		outerRingColor.setStroke()
+		outerPath.stroke()
+
+		if ringStyle == .gradient && gradientColorsOuterCircle.count > 1 {
+			// Create gradient and draw it
+			var cgColors: [CGColor] = [CGColor]()
+			for color: UIColor in gradientColorsOuterCircle {
+				cgColors.append(color.cgColor)
+			}
+
+			guard let gradient: CGGradient = CGGradient(colorsSpace: nil,
+														colors: cgColors as CFArray,
+														locations: gradientColorLocationsOuterCircle)
+				else {
+					fatalError("\nUnable to create gradient for progress ring.\n" +
+						"Check values of gradientColors and gradientLocations.\n")
+			}
+
+			ctx.saveGState()
+			ctx.addPath(outerPath.cgPath)
+			ctx.replacePathWithStrokedPath()
+			ctx.clip()
+
+			drawGradient(gradient, start: gradientStartPositionOuterCircle,
+						 end: gradientEndPositionOuterCircle, inContext: ctx)
+
+			ctx.restoreGState()
+		}
     }
     
     /**
