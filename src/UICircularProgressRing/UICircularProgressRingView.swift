@@ -85,6 +85,24 @@ import UIKit
             self.ringLayer.fullCircle = self.fullCircle
         }
     }
+
+	@IBInspectable open var thumbEnabled: Bool = true {
+		didSet {
+			self.ringLayer.shouldShowEndThumb = self.thumbEnabled
+		}
+	}
+
+	@IBInspectable open var thumbImage: UIImage? = nil {
+		didSet {
+			self.ringLayer.thumbImage = self.thumbImage
+		}
+	}
+
+	@IBInspectable open var thumbRadius: CGFloat = 20 {
+		didSet {
+			self.ringLayer.thumbRadius = thumbRadius
+		}
+	}
     
     // MARK: Value Properties
     
@@ -288,7 +306,29 @@ import UIKit
             self.ringLayer.endAngle = self.endAngle
         }
     }
-    
+
+
+	/**
+	The colors which will be used to create the outer circle gradient.
+
+	Only used when `ringStyle` is `.gradient`
+
+	The colors should be in the order they will be drawn in.
+
+	## Important ##
+	By default this property will be an empty array.
+
+	If this array is empty, no gradient will be drawn.
+
+	## Author
+	Luis Padron
+	*/
+	@objc open var gradientColorsOuterCircle: [UIColor] = [UIColor]() {
+		didSet {
+			self.ringLayer.gradientColors = self.gradientColorsOuterCircle
+		}
+	}
+
     /**
      The colors which will be used to create the gradient.
      

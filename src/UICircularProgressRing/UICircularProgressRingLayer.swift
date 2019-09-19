@@ -90,6 +90,11 @@ class UICircularProgressRingLayer: CAShapeLayer {
     @NSManaged var gradientColorLocations: [CGFloat]?
     @NSManaged var gradientStartPosition: UICircularProgressRingGradientPosition
     @NSManaged var gradientEndPosition: UICircularProgressRingGradientPosition
+
+	@NSManaged var gradientColorsOuterCircle: [UIColor]
+	@NSManaged var gradientColorLocationsOuterCircle: [CGFloat]?
+	@NSManaged var gradientStartPositionOuterCircle: UICircularProgressRingGradientPosition
+	@NSManaged var gradientEndPositionOuterCircle: UICircularProgressRingGradientPosition
     
     @NSManaged var startAngle: CGFloat
     @NSManaged var endAngle: CGFloat
@@ -102,6 +107,10 @@ class UICircularProgressRingLayer: CAShapeLayer {
     @NSManaged var innerRingColor: UIColor
     @NSManaged var innerCapStyle: CGLineCap
     @NSManaged var innerRingSpacing: CGFloat
+
+	@NSManaged var shouldShowEndThumb: Bool
+	@NSManaged var thumbRadius: CGFloat
+	@NSManaged var thumbImage: UIImage?
     
     @NSManaged var shouldShowValueText: Bool
     @NSManaged var fontColor: UIColor
@@ -148,7 +157,7 @@ class UICircularProgressRingLayer: CAShapeLayer {
         super.draw(in: ctx)
         UIGraphicsPushContext(ctx)
         // Draw the rings
-        drawOuterRing()
+		drawOuterRing(in: ctx)
         drawInnerRing(in: ctx)
         // Draw the label
         drawValueLabel()
@@ -201,7 +210,7 @@ class UICircularProgressRingLayer: CAShapeLayer {
      Draws the outer ring for the view.
      Sets path properties according to how the user has decided to customize the view.
      */
-    private func drawOuterRing() {
+	private func drawOuterRing(in ctx: CGContext) {
         guard outerRingWidth > 0 else { return }
 
         let width: CGFloat = bounds.width
@@ -235,9 +244,42 @@ class UICircularProgressRingLayer: CAShapeLayer {
         default: break
             
         }
-        
-        outerRingColor.setStroke()
-        outerPath.stroke()
+
+		outerRingColor.setStroke()
+		outerPath.stroke()
+
+		ctx.setLineWidth(outerRingWidth)
+		ctx.setLineJoin(.round)
+		ctx.setLineCap(outerCapStyle)
+		ctx.setStrokeColor(outerRingColor.cgColor)
+		ctx.addPath(outerPath.cgPath)
+		ctx.drawPath(using: .stroke)
+
+		if ringStyle == .gradient && gradientColorsOuterCircle.count > 1 {
+			// Create gradient and draw it
+			var cgColors: [CGColor] = [CGColor]()
+			for color: UIColor in gradientColorsOuterCircle {
+				cgColors.append(color.cgColor)
+			}
+
+			guard let gradient: CGGradient = CGGradient(colorsSpace: nil,
+														colors: cgColors as CFArray,
+														locations: gradientColorLocationsOuterCircle)
+				else {
+					fatalError("\nUnable to create gradient for progress ring.\n" +
+						"Check values of gradientColors and gradientLocations.\n")
+			}
+
+			ctx.saveGState()
+			ctx.addPath(outerPath.cgPath)
+			ctx.replacePathWithStrokedPath()
+			ctx.clip()
+
+			drawGradient(gradient, start: gradientStartPositionOuterCircle,
+						 end: gradientEndPositionOuterCircle, inContext: ctx)
+
+			ctx.restoreGState()
+		}
     }
     
     /**
@@ -324,7 +366,30 @@ class UICircularProgressRingLayer: CAShapeLayer {
             
             ctx.restoreGState()
         }
-    }
+
+		drawThumb(at: innerPath.currentPoint, in: ctx)
+	}
+
+	func drawThumb(at point: CGPoint, in context:CGContext) {
+		let rect = CGRect(x: point.x - thumbRadius , y: point.y - thumbRadius, width: thumbRadius * 2, height: thumbRadius * 2)
+		context.saveGState()
+		context.setFillColor(UIColor.white.cgColor)
+		context.setShadow(offset: CGSize(width: 0, height: 3), blur: 0.8)
+		context.addEllipse(in: rect)
+		context.fillPath()
+		context.restoreGState()
+
+
+		if let image = thumbImage {
+			context.saveGState()
+			let radius = thumbRadius - 6
+			let rect = CGRect(x: point.x - radius , y: point.y - radius, width: radius * 2, height: radius * 2)
+			image.draw(in: rect)
+			//context.draw(image, in: rect)
+			context.restoreGState()
+		}
+	}
+
     
     /**
      Draws a gradient with a start and end position inside the provided context
