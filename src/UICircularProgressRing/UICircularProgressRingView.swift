@@ -692,7 +692,7 @@ import UIKit
      ## Author
      Luis Padron
      */
-    @objc open var animationStyle: String = kCAMediaTimingFunctionEaseIn {
+    @objc open var animationStyle: CAMediaTimingFunctionName = CAMediaTimingFunctionName.easeIn {
         didSet {
             self.ringLayer.animationStyle = self.animationStyle
         }
